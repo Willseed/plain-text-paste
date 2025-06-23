@@ -21,15 +21,15 @@ jobs:
         with:
           node-version: 20
       - run: npm install -g typescript
-      - run: tsc                      # 編譯 TypeScript 到 dist 目錄
+      - run: tsc                      # 編譯 TypeScript 到根目錄
       
-      # 複製 HTML 檔案到 dist 目錄
-      - run: cp index.html dist/
+      # 複製 HTML 檔案到根目錄（其實已在根目錄，可省略）
+      # - run: cp index.html ./
       
       # 產物打包並上傳
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: ./dist
+          path: .
 
   deploy:
     runs-on: ubuntu-latest

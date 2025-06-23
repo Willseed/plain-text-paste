@@ -3,7 +3,6 @@
     "target": "es2024",
     "module": "esnext",
     "strict": true,
-    "outDir": "./dist",
     "esModuleInterop": true
   },
   "include": ["main.ts"]
