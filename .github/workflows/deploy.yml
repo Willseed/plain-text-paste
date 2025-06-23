@@ -21,13 +21,15 @@ jobs:
         with:
           node-version: 20
       - run: npm install -g typescript
-      - run: tsc                      # 預設輸出 main.js 到專案根目錄
-                                      # 若你把 outDir 設成 dist，記得下方 path 也跟著改
-
-      # 產物打包並上傳（v3 → 內部已用 upload-artifact@v4）
+      - run: tsc                      # 編譯 TypeScript 到 dist 目錄
+      
+      # 複製 HTML 檔案到 dist 目錄
+      - run: cp index.html dist/
+      
+      # 產物打包並上傳
       - uses: actions/upload-pages-artifact@v3
         with:
-          path: ./dist                     # 或 ./dist
+          path: ./dist
 
   deploy:
     runs-on: ubuntu-latest
