@@ -119,11 +119,13 @@ function handleTabKey(e: KeyboardEvent): void {
   }
 }
 
-// 將函式暴露到全域範圍，以便 HTML 可以呼叫
-(window as any).toggleTheme = toggleTheme;
-
 document.addEventListener('DOMContentLoaded', () => {
   const area = document.getElementById('pasteArea') as HTMLTextAreaElement | null;
+  const themeToggleButton = document.querySelector('.theme-toggle');
+
+  if (themeToggleButton) {
+    themeToggleButton.addEventListener('click', toggleTheme);
+  }
   
   if (area) {
     enablePlainTextPaste(area);
