@@ -1,34 +1,41 @@
-name: build & deploy
+# .github/workflows/deploy.yml
+name: Build & Deploy (GitHub Pages)
 
 on:
   push:
-    branches: [main]   # 只要 main 有變動就重新部署
+    branches: [main]      # main 有變動就重新部署
 
-permissions:
+permissions:             # ★ deploy-pages@v4 需要這兩個權限
   contents: read
   pages: write
-  id-token: write      # 部署到 Pages 需要
+  id-token: write
 
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4       # 取出原始碼
+      - uses: actions/checkout@v4
+
+      # 安裝 TypeScript 並編譯
       - uses: actions/setup-node@v4
         with:
           node-version: 20
-      - run: npm install -g typescript  # 安裝 tsc
-      - run: tsc                        # 編譯，預設輸出到 ./ （或改 outDir=dist）
-      - uses: actions/upload-pages-artifact@v2
+      - run: npm install -g typescript
+      - run: tsc                      # 預設輸出 main.js 到專案根目錄
+                                      # 若你把 outDir 設成 dist，記得下方 path 也跟著改
+
+      # 產物打包並上傳（v3 → 內部已用 upload-artifact@v4）
+      - uses: actions/upload-pages-artifact@v3
         with:
-          path: ./dist                       # 若用 dist，改成 path: ./dist
+          path: ./dist                     # 或 ./dist
 
   deploy:
-    needs: build
     runs-on: ubuntu-latest
+    needs: build
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
+
     steps:
-      - id: deployment
-        uses: actions/deploy-pages@v4
+      - uses: actions/deploy-pages@v4
+        id: deployment
