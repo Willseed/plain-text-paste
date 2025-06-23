@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <title>Only Text</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    :root {
+      --bg-color: #ffffff;
+      --text-color: #333333;
+      --card-bg: #f8f9fa;
+      --border-color: #e0e0e0;
+      --accent-color: #007bff;
+      --shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      --textarea-bg: #ffffff;
+    }
+
+    [data-theme="dark"] {
+      --bg-color: #1a1a1a;
+      --text-color: #e0e0e0;
+      --card-bg: #2d2d2d;
+      --border-color: #404040;
+      --accent-color: #4dabf7;
+      --shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+      --textarea-bg: #262626;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 2rem;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      transition: background-color 0.3s ease, color 0.3s ease;
+      min-height: 100vh;
+      line-height: 1.6;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: 0 auto;
+      background-color: var(--card-bg);
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+      transition: background-color 0.3s ease;
+    }
+
+    h1 {
+      color: var(--accent-color);
+      text-align: center;
+      margin-bottom: 1rem;
+      font-size: 2rem;
+      font-weight: 700;
+    }
+
+    p {
+      text-align: center;
+      margin-bottom: 2rem;
+      opacity: 0.8;
+      font-size: 1.1rem;
+    }
+
+    .editor-container {
+      position: relative;
+      border: 2px solid var(--border-color);
+      border-radius: 8px;
+      background-color: var(--textarea-bg);
+      overflow: hidden;
+      transition: all 0.3s ease;
+    }
+
+    .editor-container:focus-within {
+      border-color: var(--accent-color);
+      box-shadow: 0 0 0 3px rgba(64, 171, 247, 0.1);
+    }
+
+    .line-numbers {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 50px;
+      height: 100%;
+      background-color: var(--card-bg);
+      border-right: 1px solid var(--border-color);
+      color: var(--text-color);
+      opacity: 0.6;
+      font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+      font-size: 1rem;
+      line-height: 1.5;
+      padding: 1.5rem 0.5rem;
+      box-sizing: border-box;
+      overflow: hidden;
+      user-select: none;
+      text-align: right;
+      white-space: pre;
+    }
+
+    textarea {
+      width: 100%;
+      height: 350px;
+      padding: 1.5rem 1.5rem 1.5rem 60px;
+      font-size: 1rem;
+      font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+      border: none;
+      background-color: transparent;
+      color: var(--text-color);
+      resize: vertical;
+      outline: none;
+      line-height: 1.5;
+      min-height: 350px;
+    }
+
+    textarea::placeholder {
+      color: var(--text-color);
+      opacity: 0.5;
+    }
+
+    .theme-toggle {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      background: var(--accent-color);
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      cursor: pointer;
+      font-size: 1.2rem;
+      transition: all 0.3s ease;
+      box-shadow: var(--shadow);
+    }
+
+    .theme-toggle:hover {
+      transform: scale(1.1);
+    }
+
+    @media (max-width: 768px) {
+      body {
+        padding: 1rem;
+      }
+      
+      .container {
+        padding: 1.5rem;
+      }
+      
+      h1 {
+        font-size: 1.5rem;
+      }
+      
+      .editor-container {
+        height: 300px;
+      }
+      
+      textarea {
+        height: 300px;
+        padding: 1rem 1rem 1rem 50px;
+      }
+
+      .line-numbers {
+        width: 40px;
+        padding: 1rem 0.3rem;
+        font-size: 0.9rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <button class="theme-toggle" onclick="toggleTheme()" title="切換深色/淺色模式">🌙</button>
+  
+  <div class="container">
+    <h1>貼上時自動去除格式</h1>
+    <p>把任何含格式的內容（Word、網頁、PDF…）貼進下方文字框，將只保留純文字。</p>
+
+    <div class="editor-container">
+      <div class="line-numbers" id="lineNumbers">1</div>
+      <textarea id="pasteArea" placeholder="請在此貼上…"></textarea>
+    </div>
+  </div>
+
+  <script>
+    // 行號更新功能
+    function updateLineNumbers() {
+      const textarea = document.getElementById('pasteArea');
+      const lineNumbers = document.getElementById('lineNumbers');
+      const lines = textarea.value.split('\n').length;
+      
+      let lineNumberText = '';
+      const maxLines = Math.max(lines, 20);
+      const maxDigits = maxLines.toString().length;
+      
+      for (let i = 1; i <= maxLines; i++) {
+        const lineNum = i.toString().padStart(maxDigits, ' ');
+        lineNumberText += lineNum + '\n';
+      }
+      
+      lineNumbers.textContent = lineNumberText;
+      
+      // 調整行號區域寬度以適應數字位數
+      const newWidth = Math.max(50, maxDigits * 12 + 20);
+      lineNumbers.style.width = newWidth + 'px';
+      textarea.style.paddingLeft = (newWidth + 10) + 'px';
+      
+      // 同步捲動
+      lineNumbers.scrollTop = textarea.scrollTop;
+    }
+
+    // 同步捲動
+    function syncScroll() {
+      const textarea = document.getElementById('pasteArea');
+      const lineNumbers = document.getElementById('lineNumbers');
+      lineNumbers.scrollTop = textarea.scrollTop;
+    }
+
+    // 主題切換功能
+    function toggleTheme() {
+      const button = document.querySelector('.theme-toggle');
+      const html = document.documentElement;
+      const currentTheme = html.getAttribute('data-theme');
+      
+      if (currentTheme === 'dark') {
+        html.removeAttribute('data-theme');
+        button.textContent = '🌙';
+        localStorage.setItem('theme', 'light');
+      } else {
+        html.setAttribute('data-theme', 'dark');
+        button.textContent = '☀️';
+        localStorage.setItem('theme', 'dark');
+      }
+    }
+
+    // 載入儲存的主題設定
+    function loadTheme() {
+      const savedTheme = localStorage.getItem('theme');
+      const button = document.querySelector('.theme-toggle');
+      const html = document.documentElement;
+      
+      if (savedTheme === 'dark' || (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        html.setAttribute('data-theme', 'dark');
+        button.textContent = '☀️';
+      } else {
+        html.removeAttribute('data-theme');
+        button.textContent = '🌙';
+      }
+    }
+
+    // 頁面載入時設定
+    document.addEventListener('DOMContentLoaded', function() {
+      loadTheme();
+      updateLineNumbers();
+      
+      const textarea = document.getElementById('pasteArea');
+      textarea.addEventListener('input', updateLineNumbers);
+      textarea.addEventListener('scroll', syncScroll);
+      textarea.addEventListener('keydown', function(e) {
+        // Tab 鍵插入空格而不是切換焦點
+        if (e.key === 'Tab') {
+          e.preventDefault();
+          const start = this.selectionStart;
+          const end = this.selectionEnd;
+          this.value = this.value.substring(0, start) + '  ' + this.value.substring(end);
+          this.selectionStart = this.selectionEnd = start + 2;
+          updateLineNumbers();
+        }
+      });
+    });
+  </script>
+
+  <!-- 編譯後的 JS -->
+  <script type="module" src="./main.js"></script>
+</body>
+</html>
