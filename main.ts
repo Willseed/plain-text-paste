@@ -24,10 +24,48 @@ function enablePlainTextPaste(textarea: HTMLTextAreaElement): void {
     updateLineNumbers();
     
     // 延遲執行剪貼簿操作，確保貼上事件完全處理完成
-    setTimeout(() => {
-      copyPlainTextToClipboard(textarea.value); // 複製整個 textarea
+    setTimeout(async () => {
+      await copyPlainTextToClipboard(textarea.value); // 複製整個 textarea
+      showNotification('已成功複製純文字！');
     }, 10);
   });
+}
+
+/**
+ * 顯示一個有動畫的通知訊息
+ * @param message 要顯示的訊息
+ */
+function showNotification(message: string): void {
+  const notification = document.createElement('div');
+  notification.textContent = message;
+  Object.assign(notification.style, {
+    position: 'fixed',
+    top: '20px',
+    right: '20px',
+    backgroundColor: 'rgba(76, 175, 80, 0.95)', // 綠色
+    color: 'white',
+    padding: '16px 28px',
+    borderRadius: '8px',
+    zIndex: '1001',
+    opacity: '0',
+    transform: 'translateY(-20px)',
+    fontSize: '1.1rem',
+    fontWeight: 'bold',
+    boxShadow: '0 2px 12px rgba(0,0,0,0.15)',
+    transition: 'opacity 0.5s, transform 0.5s'
+  });
+  document.body.appendChild(notification);
+  setTimeout(() => {
+    notification.style.opacity = '1';
+    notification.style.transform = 'translateY(0)';
+  }, 10);
+  setTimeout(() => {
+    notification.style.opacity = '0';
+    notification.style.transform = 'translateY(-20px)';
+    notification.addEventListener('transitionend', () => {
+      notification.remove();
+    });
+  }, 3000);
 }
 
 /**
