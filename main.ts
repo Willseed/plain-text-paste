@@ -22,6 +22,11 @@ function enablePlainTextPaste(textarea: HTMLTextAreaElement): void {
     
     // 更新行號
     updateLineNumbers();
+    
+    // 延遲執行剪貼簿操作，確保貼上事件完全處理完成
+    setTimeout(() => {
+      copyPlainTextToClipboard(textarea.value); // 複製整個 textarea
+    }, 10);
   });
 }
 
@@ -116,6 +121,33 @@ function handleTabKey(e: KeyboardEvent): void {
     textarea.value = textarea.value.substring(0, start) + '  ' + textarea.value.substring(end);
     textarea.selectionStart = textarea.selectionEnd = start + 2;
     updateLineNumbers();
+  }
+}
+
+/**
+ * 將純文字複製到剪貼簿，清除所有格式 (ES2024 標準)
+ */
+async function copyPlainTextToClipboard(text: string): Promise<void> {
+  try {
+    // 檢查 Clipboard API 可用性
+    if (!navigator.clipboard) {
+      throw new Error('Clipboard API 不可用');
+    }
+
+    // 優先使用 ClipboardItem 確保完全控制剪貼簿內容格式
+    if (navigator.clipboard.write) {
+      const clipboardItem = new ClipboardItem({
+        'text/plain': new Blob([text], { type: 'text/plain' })
+      });
+      await navigator.clipboard.write([clipboardItem]);
+      return;
+    }
+    
+    // 退回使用 writeText (現代瀏覽器都支援)
+    await navigator.clipboard.writeText(text);
+  } catch (error) {
+    console.warn('無法複製到剪貼簿:', error);
+    // ES2024 中不再提供 execCommand 備用方案
   }
 }
 
